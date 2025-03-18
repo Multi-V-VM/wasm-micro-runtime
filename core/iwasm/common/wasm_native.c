@@ -650,7 +650,7 @@ wasm_native_init()
 
 #if WASM_ENABLE_WASI_NN != 0
     n_native_symbols = get_wasi_nn_export_apis(&native_symbols);
-    if (!wasm_native_register_natives("wasi_nn", native_symbols,
+    if (!wasm_native_register_natives("wasi_ephemeral_nn", native_symbols,
                                       n_native_symbols))
         goto fail;
 #endif

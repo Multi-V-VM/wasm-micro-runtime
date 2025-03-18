@@ -4042,7 +4042,7 @@ wasm_interp_call_func_bytecode(WASMModuleInstance *module,
                 frame->csp_bottom + cur_wasm_func->max_block_num;
 #if WASM_ENABLE_CUSTOM_NAME_SECTION != 0
             if (frame->function->u.func->field_name)
-                LOG_FATAL("csp_bottom %p for function %s", frame->csp_bottom,
+                LOG_DEBUG("csp_bottom %p for function %s", frame->csp_bottom,
                           frame->function->u.func->field_name);
 #endif
             /* Initialize the local variables */
@@ -4070,7 +4070,7 @@ wasm_interp_call_func_bytecode(WASMModuleInstance *module,
             /* Called from native. */
             return;
 #if WASM_ENABLE_CHECKPOINT_RESTORE!=0
-        // LOG_FATAL("return_func: %s %p",
+        // LOG_DEBUG("return_func: %s %p",
         //           prev_frame->function->u.func->field_name, prev_frame);
         // if (func_to_stop && !strcmp(prev_frame->function->u.func->field_name, func_to_stop) ) {
         //     if (func_to_stop_count > func_count_) {
