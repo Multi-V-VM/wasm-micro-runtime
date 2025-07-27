@@ -1,0 +1,118 @@
+/*
+ * Copyright (C) 2019 Intel Corporation.  All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+ */
+
+/* TDX Guest-Host Interface Definition */
+
+/* File operations */
+int tdcall_open(const char *pathname, int flags, bool has_mode, unsigned mode);
+int tdcall_openat(int dirfd, const char *pathname, int flags, bool has_mode, unsigned mode);
+int tdcall_close(int fd);
+ssize_t tdcall_read(int fd, void *buf, size_t read_size);
+off_t tdcall_lseek(int fd, off_t offset, int whence);
+int tdcall_ftruncate(int fd, off_t length);
+int tdcall_fsync(int fd);
+int tdcall_fdatasync(int fd);
+int tdcall_isatty(int fd);
+void tdcall_fdopendir(int fd, void **p_dirp);
+
+/* Directory operations */
+void *tdcall_readdir(void *dirp);
+void tdcall_rewinddir(void *dirp);
+void tdcall_seekdir(void *dirp, long loc);
+long tdcall_telldir(void *dirp);
+int tdcall_closedir(void *dirp);
+
+/* Stat operations */
+int tdcall_stat(const char *pathname, void *buf, unsigned int buf_len);
+int tdcall_fstat(int fd, void *buf, unsigned int buf_len);
+int tdcall_fstatat(int dirfd, const char *pathname, void *buf, unsigned int buf_len, int flags);
+
+/* File system operations */
+int tdcall_mkdirat(int dirfd, const char *pathname, unsigned mode);
+int tdcall_link(const char *oldpath, const char *newpath);
+int tdcall_linkat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath, int flags);
+int tdcall_unlinkat(int dirfd, const char *pathname, int flags);
+ssize_t tdcall_readlinkat(int dirfd, const char *pathname, char *buf, size_t bufsiz);
+int tdcall_renameat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath);
+int tdcall_symlinkat(const char *target, int newdirfd, const char *linkpath);
+
+/* ioctl operations */
+int tdcall_ioctl(int fd, unsigned long request, void *arg, unsigned int arg_len);
+int tdcall_fcntl(int fd, int cmd);
+int tdcall_fcntl_long(int fd, int cmd, long arg);
+
+/* Socket operations */
+int tdcall_socket(int domain, int type, int protocol);
+int tdcall_getsockopt(int sockfd, int level, int optname, void *val_buf, unsigned int val_buf_size, void *len_buf);
+int tdcall_sendmsg(int sockfd, void *msg_buf, unsigned int msg_buf_size, int flags);
+int tdcall_recvmsg(int sockfd, void *msg_buf, unsigned int msg_buf_size, int flags);
+int tdcall_shutdown(int sockfd, int how);
+int tdcall_setsockopt(int sockfd, int level, int optname, void *optval, unsigned int optlen);
+int tdcall_bind(int sockfd, const void *addr, unsigned int addrlen);
+int tdcall_getpeername(int sockfd, void *addr, unsigned int addr_size, void *addrlen);
+int tdcall_getsockname(int sockfd, void *addr, unsigned int addr_size, void *addrlen);
+int tdcall_listen(int sockfd, int backlog);
+int tdcall_accept(int sockfd, void *addr, unsigned int addr_size, void *addrlen);
+int tdcall_connect(int sockfd, void *addr, unsigned int addrlen);
+int tdcall_recv(int sockfd, void *buf, size_t len, int flags);
+int tdcall_send(int sockfd, const void *buf, size_t len, int flags);
+
+/* Time operations */
+int tdcall_clock_gettime(unsigned clock_id, void *tp_buf);
+int tdcall_clock_getres(int clock_id, void *res_buf);
+int tdcall_utimensat(int dirfd, const char *pathname, const void *times_buf, int flags);
+int tdcall_futimens(int fd, const void *times_buf);
+int tdcall_clock_nanosleep(unsigned clock_id, int flags, const void *req_buf, void *rem_buf);
+
+/* Thread operations */
+int tdcall_pthread_create(void *thread, const void *attr, void *start_routine, void *arg);
+int tdcall_pthread_join(void *thread, void **retval);
+int tdcall_pthread_detach(void *thread);
+int tdcall_pthread_equal(void *t1, void *t2);
+void *tdcall_pthread_self(void);
+int tdcall_pthread_cancel(void *thread);
+int tdcall_pthread_setcancelstate(int state, int *oldstate);
+int tdcall_pthread_setcanceltype(int type, int *oldtype);
+void tdcall_pthread_testcancel(void);
+int tdcall_pthread_mutex_init(void *mutex, void *attr);
+int tdcall_pthread_mutex_destroy(void *mutex);
+int tdcall_pthread_mutex_lock(void *mutex);
+int tdcall_pthread_mutex_trylock(void *mutex);
+int tdcall_pthread_mutex_unlock(void *mutex);
+int tdcall_pthread_cond_init(void *cond, void *attr);
+int tdcall_pthread_cond_destroy(void *cond);
+int tdcall_pthread_cond_wait(void *cond, void *mutex);
+int tdcall_pthread_cond_timedwait(void *cond, void *mutex, void *abstime);
+int tdcall_pthread_cond_signal(void *cond);
+int tdcall_pthread_cond_broadcast(void *cond);
+int tdcall_pthread_rwlock_init(void *rwlock, void *attr);
+int tdcall_pthread_rwlock_destroy(void *rwlock);
+int tdcall_pthread_rwlock_rdlock(void *rwlock);
+int tdcall_pthread_rwlock_tryrdlock(void *rwlock);
+int tdcall_pthread_rwlock_wrlock(void *rwlock);
+int tdcall_pthread_rwlock_trywrlock(void *rwlock);
+int tdcall_pthread_rwlock_unlock(void *rwlock);
+int tdcall_pthread_key_create(void *key, void *destructor);
+int tdcall_pthread_key_delete(unsigned int key);
+int tdcall_pthread_setspecific(unsigned int key, const void *value);
+void *tdcall_pthread_getspecific(unsigned int key);
+
+/* Memory operations */
+void *tdcall_mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
+int tdcall_munmap(void *addr, size_t length);
+int tdcall_mprotect(void *addr, size_t len, int prot);
+int tdcall_madvise(void *addr, size_t length, int advice);
+
+/* Process/Signal operations */
+int tdcall_raise(int sig);
+
+/* Misc operations */
+int tdcall_getentropy(void *buffer, size_t length);
+
+/* Get environment */
+void tdcall_get_env(const char *name, char *value, unsigned int value_size);
+
+/* Sbrk */
+int tdcall_sbrk(intptr_t increment, void **p_old_brk);
