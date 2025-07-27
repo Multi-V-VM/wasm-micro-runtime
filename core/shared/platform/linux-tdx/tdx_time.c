@@ -70,3 +70,17 @@ tdx_futimens(int fd, const struct timespec times[2])
 {
     return tdcall_futimens(fd, times);
 }
+
+uint64_t
+os_time_get_boot_microsecond()
+{
+#ifndef TDX_DISABLE_WASI
+    struct timespec ts;
+    if (tdx_clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
+        return 0;
+    }
+    return ((uint64_t)ts.tv_sec) * 1000 * 1000 + ((uint64_t)ts.tv_nsec) / 1000;
+#else
+    return 0;
+#endif
+}

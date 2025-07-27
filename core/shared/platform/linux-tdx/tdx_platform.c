@@ -5,10 +5,35 @@
 
 #include "platform_api_vmcore.h"
 #include "platform_api_extension.h"
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <pthread.h>
+#include <stdint.h>
+#include "tdx_security.h"
+#include "tdx_attestation.h"
+
+/* Memory management operations - declare before use */
+extern void *tdcall_mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
+extern int tdcall_munmap(void *addr, size_t length);
+extern int tdcall_mprotect(void *addr, size_t len, int prot);
+extern int tdcall_madvise(void *addr, size_t length, int advice);
+extern int tdcall_getentropy(void *buffer, size_t length);
+extern void tdcall_get_env(const char *name, char *value, unsigned int value_size);
+extern int tdcall_sbrk(intptr_t increment, void **p_old_brk);
 
 #ifndef TDX_DISABLE_PTHREAD
 
-static os_thread_local_attribute bool thread_signal_inited = false;
+/* Define thread local storage based on compiler */
+#if defined(__GNUC__) || defined(__clang__)
+    #define os_thread_local_attribute __thread
+#else
+    #define os_thread_local_attribute
+#endif
+
+/* Thread signal initialization flag - currently unused in TDX */
+/* static os_thread_local_attribute bool thread_signal_inited = false; */
 
 #endif
 
@@ -128,11 +153,14 @@ os_icache_flush(void *start, size_t len)
     /* TDX typically handles cache coherency automatically */
 }
 
-/* Memory management operations */
-extern void *tdcall_mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
-extern int tdcall_munmap(void *addr, size_t length);
-extern int tdcall_mprotect(void *addr, size_t len, int prot);
-extern int tdcall_madvise(void *addr, size_t length, int advice);
-extern int tdcall_getentropy(void *buffer, size_t length);
-extern void tdcall_get_env(const char *name, char *value, unsigned int value_size);
-extern int tdcall_sbrk(intptr_t increment, void **p_old_brk);
+int
+os_dumps_proc_mem_info(char *out, unsigned int size)
+{
+    int out_size = snprintf(out, size, "TDX guest memory info not available\n");
+    if (out_size >= size) {
+        out[size - 1] = '\0';
+    }
+    return 0;
+}
+
+/* Thread stack boundary and JIT write protection are now handled by posix_thread.c */

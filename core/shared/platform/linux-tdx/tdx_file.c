@@ -34,6 +34,14 @@ extern int tdcall_ioctl(int fd, unsigned long request, void *arg, unsigned int a
 extern int tdcall_fcntl(int fd, int cmd);
 extern int tdcall_fcntl_long(int fd, int cmd, long arg);
 
+/* Directory operations */
+extern void tdcall_fdopendir(int fd, void **p_dirp);
+extern void *tdcall_readdir(void *dirp);
+extern void tdcall_rewinddir(void *dirp);
+extern void tdcall_seekdir(void *dirp, long loc);
+extern long tdcall_telldir(void *dirp);
+extern int tdcall_closedir(void *dirp);
+
 int
 tdx_open(const char *pathname, int flags, ...)
 {

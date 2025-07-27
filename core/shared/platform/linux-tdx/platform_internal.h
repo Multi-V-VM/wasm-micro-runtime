@@ -20,6 +20,7 @@
 #include <limits.h>
 #include <errno.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 #include "tdx_file.h"
 #include "tdx_pthread.h"
@@ -50,7 +51,7 @@ typedef pthread_t korp_tid;
 typedef pthread_mutex_t korp_mutex;
 typedef pthread_cond_t korp_cond;
 typedef pthread_rwlock_t korp_rwlock;
-typedef unsigned int korp_sem;
+typedef sem_t korp_sem;
 
 #ifndef TDX_DISABLE_PTHREAD
 #define OS_THREAD_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER

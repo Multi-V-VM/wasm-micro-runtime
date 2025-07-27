@@ -22,7 +22,7 @@ typedef struct {
 int
 ipfs_init()
 {
-    ipfs_file_map = bh_hash_map_create(32, false, NULL, NULL, NULL);
+    ipfs_file_map = bh_hash_map_create(32, false, NULL, NULL, NULL, NULL);
     return ipfs_file_map ? 0 : -1;
 }
 

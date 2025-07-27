@@ -3,9 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
  */
 
+/* Enable GNU extensions for preadv, pwritev, readv, writev */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include "platform_api_extension.h"
 #include "libc_errno.h"
 #include <unistd.h>
+#include <sys/uio.h>
 
 #if !defined(__APPLE__) && !defined(ESP_PLATFORM)
 #define CONFIG_HAS_PWRITEV 1

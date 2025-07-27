@@ -8,6 +8,8 @@
 #endif
 #include "platform_api_vmcore.h"
 #include "platform_api_extension.h"
+#include <semaphore.h>
+#include <sys/time.h>
 
 #if WASM_ENABLE_CHECKPOINT_RESTORE != 0
 #include "../../../../../../../include/wamr_export.h"

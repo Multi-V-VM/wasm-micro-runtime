@@ -11,6 +11,15 @@
 //
 // Copyright (c) 2016-2018 Nuxi, https://nuxi.nl/
 
+/* Enable GNU extensions for poll, ioctl, and other POSIX features */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#endif
+
 #include "ssp_config.h"
 #include "bh_platform.h"
 #include "blocking_op.h"
@@ -18,6 +27,11 @@
 #include "libc_errno.h"
 #include "locking.h"
 #include "posix.h"
+
+/* Include POSIX headers for poll and ioctl */
+#include <poll.h>
+#include <sys/ioctl.h>
+#include <termios.h>
 #include "random.h"
 #include "refcount.h"
 #include "rights.h"
