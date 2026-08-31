@@ -28,9 +28,7 @@ typedef struct {
 
 /* Attestation report structure */
 typedef struct {
-    uint8_t report_mac_struct[256];
-    uint8_t report_data[64];
-    uint8_t reserved[32];
+    uint8_t data[1024];
 } tdx_report_t;
 
 /* Quote generation structure */

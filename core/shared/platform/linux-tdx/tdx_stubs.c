@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <sys/random.h>
 
 /* Forward declaration for renameat - some systems need this even with _GNU_SOURCE */
 extern int renameat(int olddirfd, const char *oldpath, int newdirfd, const char *newpath);
@@ -103,10 +104,21 @@ tdcall_madvise(void *addr, size_t length, int advice)
 int
 tdcall_getentropy(void *buffer, size_t length)
 {
-    /* In real TDX, this would get entropy from TDX module */
-    /* For now, just fill with pseudo-random data */
-    for (size_t i = 0; i < length; i++) {
-        ((unsigned char*)buffer)[i] = (unsigned char)(rand() & 0xFF);
+    unsigned char *position = (unsigned char *)buffer;
+    size_t remaining = length;
+
+    if (!buffer && length) {
+        errno = EINVAL;
+        return -1;
+    }
+    while (remaining) {
+        ssize_t count = getrandom(position, remaining, 0);
+        if (count < 0 && errno == EINTR)
+            continue;
+        if (count <= 0)
+            return -1;
+        position += count;
+        remaining -= (size_t)count;
     }
     return 0;
 }
