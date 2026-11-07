@@ -1420,7 +1420,7 @@ aot_compile_op_call(AOTCompContext *comp_ctx, AOTFuncContext *func_ctx,
     char buf[32];
     bool quick_invoke_c_api_import = false;
 
-    aot_mvvm_mark_call(comp_ctx, func_ctx);
+    aot_mvvm_mark_call(comp_ctx, func_ctx, func_idx);
 
     /* Check function index */
     if (func_idx >= import_func_count + func_count) {
@@ -2113,7 +2113,7 @@ aot_compile_op_call_indirect(AOTCompContext *comp_ctx, AOTFuncContext *func_ctx,
     bool ret = false;
 
     /* Check function type index */
-    aot_mvvm_mark_call(comp_ctx, func_ctx);
+    aot_mvvm_mark_call(comp_ctx, func_ctx, UINT32_MAX);
     if (type_idx >= comp_ctx->comp_data->type_count) {
         aot_set_last_error("function type index out of range");
         return false;
