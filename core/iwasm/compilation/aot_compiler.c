@@ -4023,6 +4023,9 @@ aot_compile_wasm(AOTCompContext *comp_ctx)
     LLVMDIBuilderFinalize(comp_ctx->debug_builder);
 #endif
 
+    if (!aot_mvvm_lower_resume(comp_ctx))
+        return false;
+
     /* Disable LLVM module verification for jit mode to speedup
        the compilation process */
     if (!comp_ctx->is_jit_mode) {

@@ -67,6 +67,8 @@
 using namespace llvm;
 using namespace llvm::orc;
 
+#include "aot_mvvm_dwarf.inc"
+
 #if LLVM_VERSION_MAJOR >= 17
 namespace llvm {
 template<typename T>

@@ -1963,6 +1963,7 @@ aot_create_func_context(const AOTCompData *comp_data, AOTCompContext *comp_ctx,
         goto fail;
     }
 
+    aot_mvvm_mark_body(comp_ctx, func_ctx);
     return func_ctx;
 
 fail:

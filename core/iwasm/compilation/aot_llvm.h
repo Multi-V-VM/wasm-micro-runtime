@@ -644,6 +644,9 @@ aot_load_const_from_table(AOTCompContext *comp_ctx, LLVMValueRef base,
 bool
 aot_check_simd_compatibility(const char *arch_c_str, const char *cpu_c_str);
 
+void aot_mvvm_mark_body(AOTCompContext *, AOTFuncContext *);
+void aot_mvvm_mark_call(AOTCompContext *, AOTFuncContext *);
+bool aot_mvvm_lower_resume(AOTCompContext *);
 void
 aot_apply_llvm_new_pass_manager(AOTCompContext *comp_ctx, LLVMModuleRef module);
 

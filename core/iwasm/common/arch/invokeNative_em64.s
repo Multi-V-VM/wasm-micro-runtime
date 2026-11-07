@@ -12,12 +12,16 @@ invokeNative:
 .globl _invokeNative
 _invokeNative:
 #endif /* end of BH_PLATFORM_DARWIN */
+    .cfi_startproc
     /*  rdi - function ptr */
     /*  rsi - argv */
     /*  rdx - n_stacks */
 
     push %rbp
+    .cfi_def_cfa_offset 16
+    .cfi_offset %rbp, -16
     mov %rsp, %rbp
+    .cfi_def_cfa_register %rbp
 
     mov %rdx, %r10
     mov %rsp, %r11      /* Check that stack is aligned on */
@@ -60,5 +64,8 @@ push_args_end:
 
     call *%r11
     leave
+    .cfi_def_cfa %rsp, 8
+    .cfi_restore %rbp
     ret
+    .cfi_endproc
 
