@@ -57,12 +57,16 @@ aot_mvvm_lower_resume(AOTCompContext *ctx)
         state = new GlobalVariable(m, i32, false, GlobalValue::ExternalLinkage,
             nullptr, "mvvm_dwarf_state", nullptr, GlobalVariable::InitialExecTLSModel);
     }
-    uint64_t schema = 14695981039346656037ULL;
-    auto hash_text = [&](StringRef text) {
-        for (unsigned char byte : text.bytes()) { schema ^= byte; schema *= 1099511628211ULL; }
-        schema ^= 0xff; schema *= 1099511628211ULL;
+    // Independent of debug DIEs and locations. Conservatively require every
+    // scalar continuation slot at every resume site in its function. This is
+    // an inventory only: no values, native addresses or stack offsets.
+    std::vector<uint8_t> manifest{'M','V','V','M','R','E','Q','3'};
+    auto word = [&](uint32_t v) {
+        for (unsigned i=0; i<4; ++i) manifest.push_back(uint8_t(v >> (8*i)));
     };
-    hash_text(MVVMDwarfOptimize ? "mvvm-dwarf-optimized-v2" : "mvvm-dwarf-baseline-v2");
+    word(MVVMDwarfOptimize ? 1 : 0);
+    word(0); // Function count, filled after lowering.
+    uint32_t manifest_functions=0;
 
     // A native import can suspend; an indirect call is conservatively treated
     // as suspending. Close that set over direct Wasm calls before lowering.
@@ -143,9 +147,10 @@ aot_mvvm_lower_resume(AOTCompContext *ctx)
         // Each call gets a stable pre-optimization continuation ID. Splitting
         // before spilling puts operand reloads inside the re-entry block.
         SmallVector<BasicBlock *,16> sites;
-        hash_text(std::to_string(fi));
+        std::vector<uint32_t> site_targets;
+
         for (auto *mark : call_markers) {
-            hash_text(std::to_string(cast<ConstantInt>(mark->getArgOperand(0))->getZExtValue()));
+            site_targets.push_back(uint32_t(cast<ConstantInt>(mark->getArgOperand(0))->getZExtValue()));
             sites.push_back(mark->getParent()->splitBasicBlock(mark->getIterator(), "mvvm_call"));
             mark->eraseFromParent();
         }
@@ -177,8 +182,13 @@ aot_mvvm_lower_resume(AOTCompContext *ctx)
                 if (auto *phi = dyn_cast<PHINode>(&ins)) {
                     if (!MVVMDwarfOptimize || spill) phis.push_back(phi);
                 }
-                else if (spill && (ins.getType()->isIntegerTy() || ins.getType()->isFloatingPointTy()))
+                else if (spill) {
+                    if (!ins.getType()->isIntegerTy() && !ins.getType()->isFloatingPointTy()) {
+                        aot_set_last_error("DWARF resume cannot preserve unsupported live value type");
+                        return false;
+                    }
                     regs.push_back(&ins);
+                }
             }
         }
         for (auto *phi : phis) {
@@ -209,12 +219,20 @@ aot_mvvm_lower_resume(AOTCompContext *ctx)
             if (auto *a = dyn_cast<AllocaInst>(&ins))
                 if (a->getAllocatedType()->isIntegerTy() || a->getAllocatedType()->isFloatingPointTy())
                     slots.push_back(a);
+        ++manifest_functions;
+        word(fi); word(sites.size()); word(slots.size());
+        for (auto target : site_targets) word(target);
         unsigned slot_id = 0;
         for (auto *a : slots) {
             auto *t = a->getAllocatedType();
             auto bits = m.getDataLayout().getTypeStoreSize(t) * 8;
             auto name = a == pc ? std::string("mvvm_pc") : "mvvm_slot_" + std::to_string(slot_id++) + ":" + a->getName().str();
-            hash_text(name); hash_text(std::to_string(bits));
+            if (!bits || bits > 64 || bits % 8) {
+                aot_set_last_error("DWARF resume cannot preserve unsupported slot width");
+                return false;
+            }
+            word(name.size()); word(bits / 8);
+            manifest.insert(manifest.end(), name.begin(), name.end());
             auto *dt = di.createBasicType(t->isFloatingPointTy() ? "float" : "bits", bits,
                          t->isFloatingPointTy() ? dwarf::DW_ATE_float : dwarf::DW_ATE_unsigned);
             auto *var = di.createAutoVariable(sp, name, file, 1, dt, true);
@@ -277,6 +295,12 @@ aot_mvvm_lower_resume(AOTCompContext *ctx)
         for(auto &bb:*f) for(auto &ins:bb)
             if(!ins.getDebugLoc()) ins.setDebugLoc(DILocation::get(c,1,0,sp));
     }
+    for (unsigned i=0; i<4; ++i) manifest[12+i]=uint8_t(manifest_functions >> (8*i));
+    uint64_t schema=14695981039346656037ULL;
+    for (auto byte : manifest) { schema ^= byte; schema *= 1099511628211ULL; }
+    auto *requirements = ConstantDataArray::get(c, ArrayRef<uint8_t>(manifest));
+    new GlobalVariable(m, requirements->getType(), true, GlobalValue::ExternalLinkage,
+        requirements, "mvvm_dwarf_requirements");
     new GlobalVariable(m, Type::getInt64Ty(c), true, GlobalValue::ExternalLinkage,
         ConstantInt::get(Type::getInt64Ty(c),schema), "mvvm_dwarf_schema_id");
     di.finalize();
